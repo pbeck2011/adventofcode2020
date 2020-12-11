@@ -15,7 +15,11 @@ public class AOC {
         //exercise4();
         //exercise5();
         //exercise6();
-        exercise7();
+        //exercise7();
+        //exercise8();
+        //exercise9();
+        //exercise10();
+        exercise11();
 
     }
 
@@ -781,7 +785,172 @@ public class AOC {
     //---------------------------------------
 
     public static void exercise8() {
+        List<String> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input8.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(line);
+                System.out.println(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("First question: The accumulator reaches the value " + getAccumulatorAfterOneLoop(values));
+        System.out.println("Second question: The accumulator in the fixed code reaches the value " + getCorrectAccumulator(values));
+    }
+    public static class Instruction {
+        String name;
+        int argument;
 
+        public Instruction(String aName, int anArgument) {
+            this.name = aName;
+            this.argument = anArgument;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public int getArgument() {
+            return this.argument;
+        }
+    }
+    public static int getCorrectAccumulator(List<String> values) {
+        List<Instruction> instructions = convertInputToInstructions(values);
+        return fixCodeAndGetAccumulator(instructions);
+    }
+    private static int fixCodeAndGetAccumulator(List<Instruction> instructions) {
+        int acc = 0;
+        List<Instruction> original = new ArrayList<>(instructions);
+        List<Instruction> modified = new ArrayList<>(instructions);
+
+        for (int i = 0; i < original.size(); i++) {
+            Instruction current = original.get(i);
+            String oldName = "";
+            if (current.getName().equals("acc")) continue;
+            if (current.getName().equals("nop")) {
+                current.name = "jmp";
+                oldName = "nop";
+            } else if (current.getName().equals("jmp")) {
+                current.name = "nop";
+                oldName = "jmp";
+            }
+            modified.set(i, current);
+            if (isCorrectCode(modified)) {
+                return getAccumulatorFromCorrectCode(modified);
+            } else {
+                current.name = oldName;
+                modified.set(i, current);
+                continue;
+            }
+        }
+        return acc;
+    }
+    public static int getAccumulatorFromCorrectCode(List<Instruction> instructions){
+        boolean end = false;
+        int acc = 0;
+        int index = 0;
+        while (!end) {
+            Instruction current = instructions.get(index);
+            if (index == instructions.size() - 1) {
+                if (current.getName().equals("jmp") && current.getArgument() != 1) {
+                    end = false;
+                } else {
+                    end = true;
+                    return acc;
+                }
+            }
+            if (current.getName().equals("acc")) {
+                acc += current.getArgument();
+                ++index;
+            } else if (current.getName().equals("jmp")) {
+                index += current.getArgument();
+            } else if (current.getName().equals("nop")) {
+                ++index;
+            }
+        }
+        return acc;
+    }
+    public static boolean isCorrectCode(List<Instruction> instructions) {
+        boolean[] indexlist = new boolean[instructions.size()];
+        for (int i = 0; i < indexlist.length; i++) {
+            indexlist[i] = false;
+        }
+        boolean looped = false;
+        int acc = 0;
+        int index = 0;
+        while (!looped) {
+            Instruction current = instructions.get(index);
+            if (indexlist[index]) {
+                System.out.println("WRONG: reached a loop");
+                return false;
+            }
+            if (index == instructions.size() - 1) {
+                if (current.getName().equals("jmp") && current.getArgument() != 1) {
+                    System.out.println("WRONG: Last argument does not go to the immediate next one");
+                    return false;
+                } else {
+                    System.out.println("CORRECT!!! Accumulator is " + acc);
+                    return true;
+                }
+            }
+            indexlist[index] = true;
+            if (current.getName().equals("acc")) {
+                acc += current.getArgument();
+                ++index;
+            } else if (current.getName().equals("jmp")) {
+                index += current.getArgument();
+            } else if (current.getName().equals("nop")) {
+                ++index;
+            }
+        }
+        return false;
+    }
+    public static int getAccumulatorAfterOneLoop(List<String> values) {
+        List<Instruction> instructions = convertInputToInstructions(values);
+        boolean[] indexlist = new boolean[instructions.size()];
+        for (int i = 0; i < indexlist.length; i++) {
+            indexlist[i] = false;
+        }
+        boolean looped = false;
+        int acc = 0;
+        int index = 0;
+        while (!looped) {
+            if (indexlist[index]) {
+                looped = true;
+                continue;
+            }
+            indexlist[index] = true;
+            Instruction current = instructions.get(index);
+            if (current.getName().equals("acc")) {
+                acc += current.getArgument();
+                ++index;
+            } else if (current.getName().equals("jmp")) {
+                index += current.getArgument();
+            } else if (current.getName().equals("nop")) {
+                ++index;
+            }
+        }
+        return acc;
+    }
+    public static List<Instruction> convertInputToInstructions(List<String> values) {
+        List<Instruction> instructions = new ArrayList<>();
+        for (String current : values) {
+            String name = current.split(" ")[0];
+            String sign = current.split(" ")[1].substring(0, 1);
+            String argumentStr = current.split(" ")[1].substring(1);
+            int argument = Integer.parseInt(argumentStr);
+            if (sign.equals("-")) {
+                argument *= -1;
+            }
+            Instruction in = new Instruction(name, argument);
+            instructions.add(in);
+        }
+        return instructions;
     }
 
     //---------------------------------------
@@ -790,6 +959,69 @@ public class AOC {
 
     public static void exercise9() {
 
+        List<String> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input9.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // First question
+        System.out.println("First question: the first number to violate rule 1 is " + firstNumberToViolateRule(values));
+
+        // Second question
+        System.out.println("Second question: the encryption weakness is the number " + getEncryptionWeakness(values, firstNumberToViolateRule(values)));
+    }
+    public static long firstNumberToViolateRule(List<String> values) {
+
+        List<Long> nums = new ArrayList<>();
+        for(String s : values) nums.add(Long.valueOf(s));
+
+        for(int i = 25; i < nums.size(); i++) {
+
+            List<Long> selection = nums.subList(i-25,i);
+            long sumToCheck = nums.get(i);
+            if(!isPossibleSum(selection, sumToCheck)) return sumToCheck;
+        }
+        return 0;
+    }
+    public static boolean isPossibleSum(List<Long> selection, long sumToCheck) {
+
+        for(int i = 0; i < selection.size(); i++) {
+            long required = sumToCheck - selection.get(i);
+            if(selection.contains(required) && required != sumToCheck) return true;
+        }
+        return false;
+
+    }
+    public static long getEncryptionWeakness(List<String> values,  long sum) {
+        List<Long> nums = new ArrayList<>();
+        for(String s : values) nums.add(Long.valueOf(s));
+
+        for(int i = 0; i < nums.size(); i++) {
+            long first = nums.get(i);
+            long current = first;
+            long smallest = first;
+            long largest = 0;
+            int j = i+1;
+
+            while(current < sum) {
+                current += nums.get(j);
+                if(nums.get(j) < smallest) smallest = nums.get(j);
+                if(nums.get(j) > largest) largest = nums.get(j);
+                j++;
+            }
+            if(sum == current) return smallest + largest;
+
+        }
+        return 0;
     }
 
     //---------------------------------------
@@ -797,7 +1029,82 @@ public class AOC {
     //---------------------------------------
 
     public static void exercise10() {
+        List<Long> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input10.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(Long.parseLong(line));
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Collections.sort(values);
+        int diff1 = 0;
+        int diff3 = 0;
+        if (values.contains(1L)) diff1++;
+        if (values.contains(3L)) diff3++;
+        for (int i = 0; i < values.size(); i++) {
+            long current = values.get(i);
+            if (values.contains(current + 1)) diff1++;
+            else if (values.contains(current + 3)) diff3++;
+        }
 
+        System.out.println("First question: The product of 1diff and 3diff is " + diff1 * diff3);
+        System.out.println("Second question: The number of all possible arrangements is " + numberOfArrangements(values));
+        //System.out.println("Second question: The number of all possible arrangements is " + numberOfArrangements(values, 0));
+    }
+    public static long numberOfArrangements(List<Long> values) {
+        /*
+         * Idea: HashMap, where Key = numberFromInput and Value = possible arrangements up to the end
+         *
+         * So you start by sorting the joltage array in descending order and adding the pair (highestNumber, 1) to the HashMap
+         *  since there is only one way to get to the required highest joltage (highest number + 3)
+         *
+         * Then, in descending order, you iterate through the input (now ignoring the highest number) and each iteration, you add
+         *  (currentNumber, possibleArrangements) to the HashMap.
+         *
+         * The number of possible arrangements for one number is equal to the sum of the numbers of arrangements from its three following whole numbers
+         *  (assuming they exist). For example if we are at number 144, his possible arrangements are equal to the possibilities of the numbers 145,146,147
+         *  while always checking if the number is actually already a key in the Map. Otherwise, you skip.
+         *
+         * Now since the starting point 0 is not contained inside the input, we add one more pair (0, arrangements) by hand.
+         *
+         * When the pair (0, arrangements) exists, we found our solution, which is "arrangements". So this function returns the value for key 0.
+         */
+
+        HashMap<Long, Long> arrangements = new HashMap<>();
+        Collections.reverse(values);
+        arrangements.put(values.get(0), 1L);
+        for (int i = 1; i < values.size(); i++) {
+            long current = values.get(i);
+            long res = 0;
+            if (arrangements.containsKey(current + 1)) res += arrangements.get(current + 1);
+            if (arrangements.containsKey(current + 2)) res += arrangements.get(current + 2);
+            if (arrangements.containsKey(current + 3)) res += arrangements.get(current + 3);
+            arrangements.put(current, res);
+        }
+        long res = 0;
+        if (arrangements.containsKey(1L)) res += arrangements.get(1L);
+        if (arrangements.containsKey(2L)) res += arrangements.get(2L);
+        if (arrangements.containsKey(3L)) res += arrangements.get(3L);
+        arrangements.put(0L, res);
+        return arrangements.get(0L);
+    }
+    // For the love of god, don't use this recursive method. It works though!
+    public static long numberOfArrangements(List<Long> values, long current) {
+        System.out.println("Currently checking the number " + current);
+        if (current == values.get(values.size() - 1)) {
+            return 1;
+        }
+        long res = 0;
+        if (values.contains(current + 1)) res += numberOfArrangements(values, current + 1);
+        if (values.contains(current + 2)) res += numberOfArrangements(values, current + 2);
+        if (values.contains(current + 3)) res += numberOfArrangements(values, current + 3);
+        return res;
     }
 
     //---------------------------------------
@@ -806,6 +1113,240 @@ public class AOC {
 
     public static void exercise11() {
 
+        List<String> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input11.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        // First question
+
+        int ROWS = values.size();
+        int COLS = values.get(0).length();
+
+        char[][] seatsOrig = new char[ROWS][COLS];
+
+        for(int i = 0; i < ROWS; i++) {
+            String current = values.get(i);
+            for(int j = 0; j < COLS; j++) {
+                seatsOrig[i][j] = current.charAt(j);
+            }
+        }
+
+        boolean stop = false;
+        char[][] seatsOld = new char[ROWS][COLS];
+        for(int i = 0; i < ROWS; i++) {
+            for(int j = 0; j < COLS; j++) {
+                seatsOld[i][j] = seatsOrig[i][j];
+            }
+        }
+
+        while(!stop) {
+
+            stop = true;
+            for(int i = 0; i < ROWS; i++) {
+                for(int j = 0; j < COLS; j++) {
+                    char current = seatsOld[i][j];
+
+                    // if-else for the first part
+                    /*if(current == 'L') {
+                        if(numberOfAdjacentOccupiedSeats(seatsOld, i, j) == 0) {
+                            stop = false;
+                            seatsOrig[i][j] = '#';
+                        }
+                    } else if(current == '#') {
+                        if(numberOfAdjacentOccupiedSeats(seatsOld, i, j) >= 4) {
+                            stop = false;
+                            seatsOrig[i][j] = 'L';
+                        }
+                    }*/
+
+
+                    // if-else for the second part
+                    if(current == 'L') {
+                        if(numberOfVisibleOccupiedSeats(seatsOld, i, j) == 0) {
+                            stop = false;
+                            seatsOrig[i][j] = '#';
+                        }
+                    } else if(current == '#') {
+                        if(numberOfVisibleOccupiedSeats(seatsOld, i, j) >= 5) {
+                            stop = false;
+                            seatsOrig[i][j] = 'L';
+                        }
+                    }
+
+                }
+            }
+            for(int i = 0; i < ROWS; i++) {
+                System.arraycopy(seatsOrig[i], 0, seatsOld[i], 0, COLS);
+            }
+
+
+        }
+
+        System.out.println("Number of occupied seats after nothing changes any more is " + numberOfOccupiedSeatsInArray(seatsOrig));
+
+    }
+    public static int numberOfOccupiedSeatsInArray(char[][] seats) {
+        int res = 0;
+        for(int i = 0; i < seats.length; i++) {
+            for(int j = 0; j < seats[0].length; j++) {
+                if(seats[i][j] == '#') res++;
+            }
+        }
+        return res;
+    }
+    public static int numberOfAdjacentOccupiedSeats(char[][] seats, int x, int y) {
+        int res = 0;
+
+        if(x-1 >= 0 && y-1 >= 0) if(seats[x-1][y-1] == '#') res++;
+        if(x-1 >= 0) if(seats[x-1][y] == '#') res++;
+        if(x-1 >= 0 && y+1 < seats[0].length) if(seats[x-1][y+1] == '#') res++;
+
+        if(y-1 >= 0) if(seats[x][y-1] == '#') res++;
+        if(y+1 < seats[0].length) if(seats[x][y+1] == '#') res++;
+
+        if(x+1 < seats[0].length-1 && y-1 >= 0) if(seats[x+1][y-1] == '#') res++;
+        if(x+1 < seats[0].length-1) if(seats[x+1][y] == '#') res++;
+        if(x+1 < seats[0].length-1 && y+1 < seats[0].length) if(seats[x+1][y+1] == '#') res++;
+
+        return res;
+    }
+    public static int numberOfVisibleOccupiedSeats(char[][] seats, int x, int y) {
+
+        int res = 0;
+        String row = String.valueOf(seats[x]);
+
+        // left
+        int dy = y-1;
+        while(dy >= 0) {
+            if(seats[x][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[x][dy] == 'L') {
+                break;
+            }
+            dy--;
+        }
+
+        // right
+        dy = y+1;
+        while(dy <= seats[0].length-1) {
+            if(seats[x][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[x][dy] == 'L') {
+                break;
+            }
+            dy++;
+        }
+
+        // top
+        int dx = x-1;
+        while(dx >= 0) {
+            if(seats[dx][y] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][y] == 'L') {
+                break;
+            }
+            dx--;
+        }
+
+        //bottom
+        dx = x+1;
+        while(dx <= (seats.length-1)) {
+            if(seats[dx][y] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][y] == 'L') {
+                break;
+            }
+            dx++;
+        }
+
+        //diagonal top left
+        dx = x-1;
+        dy = y-1;
+        while (true) {
+            if(dx < 0) break;
+            if(dy < 0) break;
+            if(seats[dx][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][dy] == 'L') {
+                break;
+            }
+            dx--;
+            dy--;
+        }
+
+        //diagonal top right
+        dx = x-1;
+        dy = y+1;
+        while (true) {
+            if(dx < 0) break;
+            if(dy > (seats[0].length-1)) break;
+            if(seats[dx][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][dy] == 'L') {
+                break;
+            }
+            dx--;
+            dy++;
+        }
+
+        //diagonal bot left
+        dx = x+1;
+        dy = y-1;
+        while (true) {
+            if(dx > (seats.length-1)) break;
+            if(dy < 0) break;
+            if(seats[dx][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][dy] == 'L') {
+                break;
+            }
+            dx++;
+            dy--;
+        }
+
+        //diagonal bot right
+        dx = x+1;
+        dy = y+1;
+        while (true) {
+            if(dx > (seats.length-1)) break;
+            if(dy > (seats[0].length-1)) break;
+            if(seats[dx][dy] == '#') {
+                res++;
+                break;
+            }
+            if(seats[dx][dy] == 'L') {
+                break;
+            }
+            dx++;
+            dy++;
+        }
+
+        return res;
     }
 
     //---------------------------------------
