@@ -19,7 +19,9 @@ public class AOC {
         //exercise8();
         //exercise9();
         //exercise10();
-        exercise11();
+        //exercise11();
+        //exercise12();
+        exercise13();
 
     }
 
@@ -1355,6 +1357,147 @@ public class AOC {
 
     public static void exercise12() {
 
+        List<String> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input12.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // First question
+        System.out.println("First question: The manhattan distance is " + manhattanDistanceForFerry(values));
+
+        // Second question
+        System.out.println("Second question: The manhattan distance with a waypoint is " + manhattanDistanceForFerryWithWaypoint(values));
+
+    }
+    public static int manhattanDistanceForFerry(List<String> values) {
+
+        String dir = "east";
+        int x = 0;
+        int y = 0;
+
+        for(int i = 0; i < values.size(); i++) {
+            String current = values.get(i);
+            String instruction = current.substring(0,1);
+            int argument = Integer.parseInt(current.substring(1));
+
+            if(instruction.equals("F")) {
+                if(dir.equals("north")) y += argument;
+                else if(dir.equals("east")) x += argument;
+                else if(dir.equals("south")) y -= argument;
+                else if(dir.equals("west")) x -= argument;
+            }
+
+            else if(instruction.equals("L") || instruction.equals("R")) {
+                dir = updateDir(dir, instruction, argument);
+            }
+
+            else if(instruction.equals("N")) y += argument;
+            else if(instruction.equals("E")) x += argument;
+            else if(instruction.equals("S")) y -= argument;
+            else if(instruction.equals("W")) x -= argument;
+
+
+
+        }
+
+        return Math.abs(x) + Math.abs(y);
+    }
+    public static int manhattanDistanceForFerryWithWaypoint(List<String> values) {
+
+        String dir = "east";
+        int x = 0;
+        int y = 0;
+        Waypoint w = new Waypoint(10,1);
+
+        for(int i = 0; i < values.size(); i++) {
+            String current = values.get(i);
+            String instruction = current.substring(0,1);
+            int argument = Integer.parseInt(current.substring(1));
+
+            if(instruction.equals("F")) {
+                x += (w.x * argument);
+                y += (w.y * argument);
+            }
+
+            else if(instruction.equals("L") || instruction.equals("R")) {
+                w.update(instruction, argument);
+            }
+
+            else if(instruction.equals("N")) w.y += argument;
+            else if(instruction.equals("E")) w.x += argument;
+            else if(instruction.equals("S")) w.y -= argument;
+            else if(instruction.equals("W")) w.x -= argument;
+
+        }
+
+        System.out.println("Ferry Coordinates: (" + x + "," + y + ")");
+        return Math.abs(x) + Math.abs(y);
+    }
+    public static String updateDir(String dir, String rot, int angle) {
+        int offset = angle/90;
+
+        List<String> dirs = new ArrayList<>();
+        dirs.add("north");
+        dirs.add("east");
+        dirs.add("south");
+        dirs.add("west");
+
+        if(rot.equals("L") && angle == 90) offset = 3;
+        if(rot.equals("L") && angle == 270) offset = 1;
+
+
+        System.out.println(dirs.indexOf(dir) + offset % 4);
+        return dirs.get((dirs.indexOf(dir) + offset) % 4);
+    }
+    public static class Waypoint {
+        int x;
+        int y;
+
+        public Waypoint(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public void update(String dir, int angle) {
+
+            if(angle == 360) return;
+
+            if(dir.equals("L") && angle == 270) {
+                angle = 90;
+            }
+            else if(dir.equals("L") && angle == 90) {
+                angle = 270;
+            }
+
+            if(angle == 180) {
+                this.x *= -1;
+                this.y *= -1;
+            }
+
+            if(angle == 90) {
+                int oldy = this.y;
+                int oldx = this.x;
+                this.x = oldy;
+                this.y = oldx * -1;
+            }
+
+            if(angle == 270) {
+                int oldy = this.y;
+                int oldx = this.x;
+                this.x = oldy * -1;
+                this.y = oldx;
+            }
+
+        }
     }
 
     //---------------------------------------
@@ -1363,6 +1506,89 @@ public class AOC {
 
     public static void exercise13() {
 
+        List<String> values = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\input13.txt"));
+            //reader = new BufferedReader(new FileReader("C:\\Users\\ypreb\\Desktop\\aoc\\test.txt"));
+            String line = reader.readLine();
+            while (line != null) {
+                values.add(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int timestamp = Integer.parseInt(values.get(0));
+        List<String> ids = Arrays.asList(values.get(1).split(","));
+
+        // First question
+        //System.out.println("First question: The product of ID and wait time is " + productOfIDandWaitTime(timestamp, ids));
+
+        // Second question
+
+        /*System.out.println(3417 % 17);
+        System.out.println((3417+2) % 13);
+        System.out.println((3417+3) % 19);*/
+
+        System.out.println("Second question: The ideal timestamp is " + earliestTimestampInPerfectSchedule(ids));
+
+    }
+
+    public static int productOfIDandWaitTime(int timestamp, List<String> ids) {
+
+        int lowest = 100000000;
+        int lowestId = 0;
+
+        for(int i = 0; i < ids.size(); i++) {
+            String current = ids.get(i);
+            if(current.equals("x")) continue;
+            int counter = 1;
+            int id = Integer.parseInt(current);
+            int origId = id;
+
+            while(true) {
+
+                int n = id * counter;
+                System.out.println("n: " + n + "; timestamp: " + timestamp + "; counter: " + counter);
+                if(n > timestamp) {
+                    if(n < lowest) {
+                        lowest = n;
+                        lowestId = i;
+                    }
+                    break;
+                } else {
+                    counter++;
+                    id = origId;
+                }
+            }
+        }
+
+        return (lowest-timestamp) * Integer.parseInt(ids.get(lowestId));
+
+    }
+    public static long earliestTimestampInPerfectSchedule(List<String> ids) {
+
+        // I copied this code, because I couldn't be bothered using discrete mathematics.
+        // Frankly speaking I still don't know why this works.
+
+        long time = 0L;
+        long inc = Long.parseLong(ids.get(0));
+        for(int i = 1; i < ids.size(); i++) {
+            if(!ids.get(i).equals("x")) {
+                long newTime = Long.parseLong(ids.get(i));
+                while(true) {
+                    time += inc;
+                    if((time + i) % newTime == 0) {
+                        inc *= newTime;
+                        break;
+                    }
+                }
+            }
+        }
+        return time;
     }
 
     //---------------------------------------
